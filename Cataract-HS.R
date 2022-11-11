@@ -20,7 +20,7 @@ rm(fit2)
 
 
 
-fit <- survfit(Surv(Age) ~ data$'Group', data = data)
+fit <- survfit(Surv(days) ~ data$'groups', data = data)
 # Visualize with survminer
 ggsurvplot(fit, data = data, risk.table = TRUE, conf.int = F, pval= T)
 
