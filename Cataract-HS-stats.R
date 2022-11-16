@@ -15,9 +15,46 @@ library(superdiag)
 library(mcmcplots)
 library(ggmcmc)
 library(gridExtra)
+library(plyr)
+library(forcats)
+
+data <- read_excel("C:/Users/edmondsonef/Desktop/CATARACT_final.xlsx")
+data$families <-  as.character(data$family)
+
+ggplot(data, aes(x = data$'SUM1', y = data$'SUM2')) +
+  geom_point(aes(color = data$sex), size = 3)+
+  scale_y_continuous(name = "SUM2") +
+  scale_x_continuous(name = "SUM1") +
+  theme_bw(base_size = 18)+
+  stat_smooth(method = "lm",
+              col = "#C42126",
+              se = T,
+              size = 1)
+
+
+
+
+ggplot(data, aes(x=cat_score, color=family)) +
+  geom_histogram(fill="white", position="dodge")+
+  theme(legend.position="top")+
+  geom_histogram(position="identity", alpha=0.25, bins =600)+
+  geom_vline(data=mu, aes(xintercept=grp.mean, color=family),
+             linetype="dashed")
+
+
+data %>%
+  mutate(family = fct_reorder(families, family)) %>%
+ggplot(aes(x = family, y = cat_score, fill = family)) + 
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape = 8, size = 2, color = "white")+
+  theme_bw() +
+  theme(legend.position = "none")
+
+
+
+
 
 cats <- read_excel(path = "C:/Users/edmondsonef/Desktop/Cataract/Hess Stats Class/GRSD.cataract.xlsx", sheet = "GRSD.cat")
-
 # remove spaces from column and value names
 names(cats) <- str_replace_all(names(cats), " ", "_")
 cats <- cats %>%
