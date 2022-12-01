@@ -4,7 +4,9 @@ library(survival)
 library(survminer)
 library(mgcv)
 
-fit <- survfit(Surv(data$cat2.days, data$cat2) ~ data$Sex, data = data)
+data <- read_excel("C:/Users/edmondsonef/Desktop/Cataract/CATARACT_final.xlsx", sheet = "KM")#"CATARACT_fin")
+
+fit <- survfit(Surv(data$Cat4.0day, data$Cat4.0) ~ data$groups, data = data)
 # Visualize with survminer
 ggsurvplot(fit, data = data, risk.table = TRUE, conf.int = T, pval= T)
 

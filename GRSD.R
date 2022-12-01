@@ -10,7 +10,6 @@ library(lmtest)
 library(HZE)
 library(dplyr)
 options(stringsAsFactors = F)
-C:\Users\edmondsonef\Downloads
 
 load(file = "C:/Users/edmondsonef/Downloads/HZE.new.Rdata")
 load("/Users/elijah/Desktop/R/QTL/WD/hs.colors.Rdata")

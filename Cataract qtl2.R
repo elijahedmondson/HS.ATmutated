@@ -8,35 +8,64 @@ library(RSQLite)
 library(qtl)
 library(qtl2convert)
 
-load("C:/Users/edmondsonef/Desktop/CAT_QTLproject_2022.Rdata")
 
-pheno = data.frame(row.names = Total$row.names, #sex = as.numeric(Total$sex == "M"),
-                   cat = as.numeric(Total$cat_score))
+#data <- read_excel("C:/Users/edmondsonef/Desktop/Cataract/CATARACT_final.xlsx", sheet ="CATARACT_fin")
+#load("C:/Users/edmondsonef/Desktop/QTL/CAT_QTLproject_2022.Rdata")
+load("C:/Users/edmondsonef/Desktop/QTL/HS_qtl2_probs_K.RData")
+#load(url("ftp://ftp.jax.org/MUGA/MM_snps.Rdata")) 
+
+
+pheno = data.frame(row.names = Total$row.names, #sex = as.numeric(Total$sex == "F"),
+                   albino = as.numeric(Total$`coat color`=="albino"))
+                   #cat = as.numeric(Total$cat_score))
 addcovar = matrix(pheno$sex, ncol = 1, dimnames = list(rownames(pheno), "sex"))
 
 
 
-out_pg <- scan1(genoprobs = probs, pheno = pheno, kinship = K, addcovar = addcovar)
+qtl2probs <- probs_doqtl_to_qtl2(probs, map = MM_snps, is_female=addcovar, 
+                                 chr_column="chr", pos_column="cM", marker_column="marker")
+
+kinship <- calc_kinship(qtl2probs)    
+    
+map_list_to_df(map_list = MM_snps, chr_column="chr", pos_column="pos", marker_column="marker")
+    
+    
+out_albino <- scan1(genoprobs = qtl2probs, pheno = pheno, kinship = kinship, addcovar = addcovar, cores=3)
 # scan1(genoprobs, pheno, kinship = NULL, addcovar = NULL, 
 #       Xcovar = NULL, intcovar = NULL, weights = NULL, reml = TRUE, 
 #       model = c("normal", "binary"), hsq = NULL, cores = 1)
 
-#sample data format
-grav2 <- read_cross2( system.file("extdata", "grav2.zip", package="qtl2") )
+par(mar=c(5.1, 4.1, 1.1, 1.1))
+ymx <- maxlod(out_albino) # overall maximum LOD score
+plot(out_albino, map = markers, lodcolumn=1, col="slateblue", ylim=c(0, ymx*1.02))
+legend("topleft", lwd=2, col=c("slateblue", "violetred"), colnames(out_albino), bg="gray90")
+
+
+find_peaks(out_albino, map = MM_snps$SNP_ID, threshold=4, drop=1.5)
 
 
 
 
 
 
-
-
-
-
-
-
-
-
+library(qtl2)
+chr <- c(1:19, "X")
+write_control_file("GRSD.json",
+                   crosstype="HS",
+                   description="GRSD",
+                   founder_geno_file=paste0("MM/MM_foundergeno", chr, ".csv"),
+                   founder_geno_transposed=TRUE,
+                   gmap_file=paste0("MM/MM_gmap", chr, ".csv"),
+                   pmap_file=paste0("MM/MM_pmap", chr, ".csv"),
+                   geno_file=paste0("forqtl2_geno", chr, ".csv"),
+                   geno_transposed=TRUE,
+                   geno_codes=list(A=1, H=2, B=3),
+                   xchr="X",
+                   pheno_file="forqtl2_pheno.csv",
+                   covar_file="forqtl2_covar.csv",
+                   sex_covar="sex",
+                   sex_codes=list(F="Female", M="Male"),
+                   crossinfo_covar="ngen")
 
 
 

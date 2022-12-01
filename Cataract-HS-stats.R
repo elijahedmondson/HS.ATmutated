@@ -17,29 +17,32 @@ library(ggmcmc)
 library(gridExtra)
 library(plyr)
 library(forcats)
+library(gghighlight)
 
-data <- read_excel("C:/Users/edmondsonef/Desktop/CATARACT_final.xlsx")
+
+data <- read_excel("C:/Users/edmondsonef/Desktop/Cataract/CATARACT_final.xlsx")
 data$families <-  as.character(data$family)
+highlight_df <- data %>% filter(data$family == c(6, 36, 50, 47, 20, 34))
 
-ggplot(data, aes(x = data$'SUM1', y = data$'SUM2')) +
-  geom_point(aes(color = data$sex), size = 3)+
-  scale_y_continuous(name = "SUM2") +
-  scale_x_continuous(name = "SUM1") +
+
+ggplot(data, aes(x = SUM1, y = SUM2)) +
+  geom_point(size = 3)+
+  scale_y_continuous(name = "OD Score") +
+  scale_x_continuous(name = "OS Score") +
   theme_bw(base_size = 18)+
+  geom_point(data=highlight_df, aes(x=SUM1,y=SUM2, color=families), size=3) +
   stat_smooth(method = "lm",
               col = "#C42126",
               se = T,
               size = 1)
 
-
-
-
-ggplot(data, aes(x=cat_score, color=family)) +
-  geom_histogram(fill="white", position="dodge")+
+mu <- ddply(data, "groups", summarise, grp.mean=mean(cat_score))
+ggplot(data, aes(x=cat_score, color=sex)) +
+  geom_histogram(fill="white", alpha=0.5, position="identity", bins =100)+
+  geom_vline(data=mu, aes(xintercept=grp.mean),
+             linetype="dashed")+
   theme(legend.position="top")+
-  geom_histogram(position="identity", alpha=0.25, bins =600)+
-  geom_vline(data=mu, aes(xintercept=grp.mean, color=family),
-             linetype="dashed")
+  facet_grid(groups ~ .)
 
 
 data %>%
@@ -51,6 +54,31 @@ ggplot(aes(x = family, y = cat_score, fill = family)) +
   theme(legend.position = "none")
 
 
+
+
+
+data %>%
+  mutate(family = fct_reorder(families, family)) %>%
+  ggplot(aes(x = family, y = log(abs(cat_difference)), fill = family)) + 
+  geom_boxplot() +
+  stat_summary(fun = "median", geom = "point", shape = 8, size = 2, color = "white")+
+  theme_bw() +
+  theme(legend.position = "none")
+
+mu <- ddply(data, "groups", summarise, grp.mean=mean(log(abs(cat_difference))))
+ggplot(data, aes(x=log(abs(cat_difference)), color=sex)) +
+  geom_histogram(fill="white", alpha=0.5, position="identity", bins =100)+
+  geom_vline(data=mu, aes(xintercept=grp.mean),
+             linetype="dashed")+
+  theme(legend.position="top")+
+  facet_grid(groups ~ .)
+
+ggplot(data, aes(x = log(abs(cat_difference)), y = days, color=groups)) +
+  geom_point(size = 3)+
+  scale_y_continuous(name = "Cat_score: both eyes") +
+  scale_x_continuous(name = "Difference in Cataract Scores: OD vs OS") +
+  theme_bw(base_size = 18)
+  #geom_point(data=highlight_df, aes(x=cat_difference,y=days, color=sex), size=3) 
 
 
 
