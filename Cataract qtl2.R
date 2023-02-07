@@ -44,34 +44,41 @@ library(dplyr)
 # 
 # save(pheno, new_probs, K, markers, file = dest_file)
 
+# map = qtl2convert::map_df_to_list(markers, chr_column = "Chr", pos_column = "Mb_NCBI38", marker_column = "SNP_ID")
+# 
+# total <- read_excel("C:/Users/edmondsonef/Desktop/Cataract/CATARACT_final.xlsx", sheet ="simple")
+# pheno <- data.frame(row.names = total$row.names, 
+#                     sex = as.numeric(total$sex == "M"), 
+#                     group = as.character(total$groups),
+#                     albino = as.numeric(total$`coat color` == "albino"),
+#                     cat_average = as.numeric(total$`cat_average`),
+#                     cat_sum = as.numeric(total$`cat_sum`),
+#                     cat_difference = as.numeric(total$`cat_difference`)) 
+#
+#save(total, pheno, probs, K, markers, map, addcovar, file = "C:/Users/edmondsonef/Desktop/QTL/Rqtl2 Files/HZE-EFE_qtl2_cat.RData")
 
 
 
 
-load("C:/Users/edmondsonef/Desktop/QTL/Rqtl2 Files/HZE-EFE_qtl2.RData")
+load("C:/Users/edmondsonef/Desktop/QTL/Rqtl2 Files/HZE-EFE_qtl2_cat.RData")
 
-
-pheno <- read_excel("C:/Users/edmondsonef/Desktop/Cataract/CATARACT_final.xlsx", sheet ="CATARACT_fin")
-
+HZE <- subset(pheno, group == "HZE")
+Gamma <- subset(pheno, group == "Gamma")
+Un <- subset(pheno, group == "Unirradiated")
+All_irr <- subset(pheno, group != "Unirradiated")
 
 
 addcovar = matrix(pheno$sex, ncol = 1, dimnames = list(rownames(pheno), "sex"))
-pheno_a = data.frame(row.names = row.names(pheno), albino = as.numeric(pheno$`albino`)) 
+#pheno_a = data.frame(row.names = row.names(pheno), albino = as.numeric(pheno$`albino`)) 
 pheno_c = data.frame(row.names = row.names(pheno), cat = as.numeric(pheno$`cat`))   
-map = qtl2convert::map_df_to_list(markers, chr_column = "Chr", pos_column = "Mb_NCBI38", marker_column = "SNP_ID")
 
-# map <- dplyr::select(markers,Chr,cM)
-# rownames(map) <- markers$SNP_ID
-# names(map)[1] = "chr"
-# names(map)[2] = "pos"
-# head(out_albino)
-# head(map)
-# markers$pos = markers$Mb_NCBI38
+head(total)
+head(pheno)
+head(pheno_c)
 
 
 ###Run QTL Analysis
-
-out_cataract <- scan1(genoprobs = new_probs, 
+all_cataract <- scan1(genoprobs = new_probs, 
                     pheno = pheno_c, 
                     kinship = K, 
                     addcovar = addcovar, 
@@ -84,8 +91,7 @@ out_cataract <- scan1(genoprobs = new_probs,
                     cores=3)
 
 
-ymx <- maxlod(out_cataract) # overall maximum LOD score
-
+maxlod(out_cataract) # overall maximum LOD score
 find_peaks(out_cataract, map= map, threshold=4, drop=1.5)
 
 plot(out_cataract, map, lodcolumn=1, ylim=c(0, ymx*1.02))
