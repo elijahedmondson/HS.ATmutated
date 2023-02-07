@@ -70,7 +70,7 @@ All_irr <- subset(pheno, group != "Unirradiated")
 
 addcovar = matrix(pheno$sex, ncol = 1, dimnames = list(rownames(pheno), "sex"))
 #pheno_a = data.frame(row.names = row.names(pheno), albino = as.numeric(pheno$`albino`)) 
-pheno_c = data.frame(row.names = row.names(pheno), cat = as.numeric(pheno$`cat`))   
+HZE_c = data.frame(row.names = row.names(HZE), cat = as.numeric(HZE$`cat_average`))   
 
 head(total)
 head(pheno)
@@ -78,8 +78,8 @@ head(pheno_c)
 
 
 ###Run QTL Analysis
-all_cataract <- scan1(genoprobs = new_probs, 
-                    pheno = pheno_c, 
+all_cataract <- scan1(genoprobs = probs, 
+                    pheno = HZE_c, 
                     kinship = K, 
                     addcovar = addcovar, 
                     #Xcovar = NULL, 
@@ -91,13 +91,31 @@ all_cataract <- scan1(genoprobs = new_probs,
                     cores=3)
 
 
-maxlod(out_cataract) # overall maximum LOD score
-find_peaks(out_cataract, map= map, threshold=4, drop=1.5)
+ymx <- maxlod(all_cataract) # overall maximum LOD score
+find_peaks(all_cataract, map= map, threshold=4, drop=1.5)
 
-plot(out_cataract, map, lodcolumn=1, ylim=c(0, ymx*1.02))
+plot(all_cataract, map, lodcolumn=1, ylim=c(0, ymx*1.02))
 
 
 
+operm <- scan1perm(probs, 
+                   pheno = HZE_c,
+                   addcovar = addcovar, 
+                   n_perm=1000,
+                   perm_Xsp=TRUE, 
+                   chr_lengths=chr_lengths(map))
+summary(operm)
+summary(operm, alpha=c(0.2, 0.05))
+
+
+
+
+out_gwas <- scan1snps(genoprobs = probs,
+                      pheno = HZE_c, 
+                      kinship = K, 
+                      map, 
+                      #query_func=query_variants, 
+                      cores=3)
 
 
 
